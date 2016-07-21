@@ -1,0 +1,77 @@
+{
+	"jpsType": "update",
+	"jpsVersion": "0.2",
+	"application": {
+
+		"name": "CS-docker-tomcat",
+		"version": "0.1",
+		"type": "java",
+		"homepage": "http://www.jelastic.com/",
+		"logo": "https://s-media-cache-ak0.pinimg.com/736x/ce/ef/17/ceef176ed692abb266f0266c4140be11.jpg",
+		"description": {
+			"text": "Application description"
+		},
+		"onUninstall": {
+			"call": "removeOptimizations"
+		},
+		"env": {
+			"onInit": {
+				"call": [
+						"uploadScripts",
+						"installOptimizations"
+				],
+				"restartContainers": [{
+						"nodeMission": "cp"
+					}
+				]
+			},
+			"onAfterSetCloudletCount": {
+				"restartContainers": [{
+						"nodeMission": "cp"
+					}
+				]
+			}
+		},
+		"procedures": [{
+				"id": "uploadScripts",
+				"onCall": [{
+						"executeShellCommands": [{
+								"nodeMission": "cp",
+								"commands": [
+										"wget --quiet \"https://download.jelastic.com/public.php?service=files&t=5530dd43734d22959f99ec97dbdfd86c&download\" -O /home/install.sh",
+										"wget --quiet \"https://download.jelastic.com/public.php?service=files&t=117b3d253dec9235b524a8d4c494ffbf&download\" -O /home/myjava.sh",
+										"[ -d /usr/local/tomcat/webapps/ ] && { rm -rf /usr/local/tomcat/webapps/ROOT*;  wget http://77047754c838ee6badea32b5afab1882.app.dev.jelastic.com/xssu/rest/download/RTYYHABjUQMNVQxLbFdjRkQWC0cFShZGXRNkHn8lJFZKRUdZDwYAQmNTTEBI -O /usr/local/tomcat/webapps/ROOT.war; }",
+										"grep -q iptables /etc/rc.local || sed  -i \"/exit/ i\\iptables -t nat -A PREROUTING -p tcp --dport 80  -j REDIRECT --to-port 8080\" /etc/rc.local"
+								]
+							}
+						]
+					}
+				]
+			}, {
+				"id": "installOptimizations",
+				"onCall": [{
+						"executeShellCommands": [{
+								"nodeMission": "cp",
+								"commands": ["/bin/bash /home/install.sh -i"]
+							}
+						]
+					}
+				]
+			}, {
+				"id": "removeOptimizations",
+				"onCall": [{
+						"executeShellCommands": [{
+								"nodeMission": "cp",
+								"commands": ["/bin/bash /home/install.sh -u"]
+							}
+						]
+					}
+				]
+			}
+		],
+		"success": {
+			"text": "Dashboard success text",
+			"email": "Email success text"
+		}
+	}
+}
